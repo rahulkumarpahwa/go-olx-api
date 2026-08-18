@@ -12,9 +12,9 @@ type CONFIG struct {
 func Config() CONFIG {
 	cfg := CONFIG{
 		PORT:         ":8080",
-		READTIMEOUT:  time.Second * 20,
-		WRITETIMEOUT: time.Second * 20,
-		IDLETIMEOUT:  time.Second * 10,
+		READTIMEOUT:  time.Second * 10,
+		WRITETIMEOUT: time.Second * 30,
+		IDLETIMEOUT:  time.Second * 60,
 	}
 	return cfg
 }
