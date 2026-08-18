@@ -1,20 +1,43 @@
 package cfg
 
-import "time"
+import (
+	"log"
+	"os"
+	"strconv"
+	"time"
 
-type CONFIG struct {
+	"github.com/joho/godotenv"
+)
+
+type Config struct {
 	PORT         string
 	READTIMEOUT  time.Duration
 	WRITETIMEOUT time.Duration
 	IDLETIMEOUT  time.Duration
+	APP_STATE    string
 }
 
-func Config() CONFIG {
-	cfg := CONFIG{
-		PORT:         ":8080",
-		READTIMEOUT:  time.Second * 10,
-		WRITETIMEOUT: time.Second * 30,
-		IDLETIMEOUT:  time.Second * 60,
+func Load() (*Config, error) {
+
+	err := godotenv.Load()
+
+	if err != nil {
+		return nil, err
 	}
-	return cfg
+
+	cfg := &Config{
+		PORT:         os.Getenv("PORT"),
+		READTIMEOUT:  timeConversion("READTIMEOUT"),
+		WRITETIMEOUT: timeConversion("WRITETIMEOUT"),
+		IDLETIMEOUT:  timeConversion("IDLETIMEOUT"),
+	}
+	return cfg, nil
+}
+
+func timeConversion(param string) time.Duration {
+	readTimeOut, err := strconv.Atoi(os.Getenv(param))
+	if(err!=nil){
+		log.Fatalf("Parsing Int Error: %v", err)
+	}
+	return time.Second * time.Duration(readTimeOut)
 }

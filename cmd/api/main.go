@@ -2,22 +2,24 @@ package main
 
 import (
 	"fmt"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/cfg"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/rahulkumarpahwa/go-olx-api/internal/cfg"
 )
 
 func main() {
-	cfg := cfg.Config()
+	cfg, err := cfg.Load()
+	if err != nil {
+		log.Fatalf("Config Loading Error: %v", err)
+	}
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /", (func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Hello"))
-	})
+	}))
 
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", "application/json")
@@ -29,14 +31,15 @@ func main() {
 	})
 
 	server := http.Server{
-		Addr:         cfg.PORT,
+		Addr:         ":" + cfg.PORT,
 		Handler:      mux,
 		ReadTimeout:  cfg.READTIMEOUT,
 		WriteTimeout: cfg.WRITETIMEOUT,
 		IdleTimeout:  cfg.IDLETIMEOUT,
 	}
 
-	fmt.Println("Welcome to the OLX API ")
+	log.SetFlags(log.Ldate | log.Ltime)
+	log.Printf("Server is Listening at http://localhost:%v", cfg.PORT)
 
 	if err := server.ListenAndServe(); err != nil {
 		fmt.Printf("%v", err.Error())
