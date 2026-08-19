@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/rahulkumarpahwa/go-olx-api/internal/config"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/rahulkumarpahwa/go-olx-api/internal/config"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/handlers"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/middleware"
 )
 
 func main() {
@@ -15,11 +18,7 @@ func main() {
 	}
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /", (func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("content-type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Hello"))
-	}))
+	mux.HandleFunc("GET /", handlers.Health)
 
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", "application/json")
@@ -30,9 +29,12 @@ func main() {
 		}
 	})
 
+	// logging every request
+	loggedMux := middleware.LoggingMiddleware(mux)
+
 	server := http.Server{
 		Addr:         ":" + cfg.PORT,
-		Handler:      mux,
+		Handler:      loggedMux,
 		ReadTimeout:  cfg.READTIMEOUT,
 		WriteTimeout: cfg.WRITETIMEOUT,
 		IdleTimeout:  cfg.IDLETIMEOUT,
