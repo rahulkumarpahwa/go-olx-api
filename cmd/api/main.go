@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/rahulkumarpahwa/go-olx-api/internal/cfg"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/config"
 	"log"
 	"net/http"
 	"time"
 )
 
 func main() {
-	cfg, err := cfg.Load()
+	cfg, err := config.MustLoad()
 	if err != nil {
 		log.Fatalf("Config Loading Error: %v", err)
 	}
