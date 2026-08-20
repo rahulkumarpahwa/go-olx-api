@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/rahulkumarpahwa/go-olx-api/internal/config"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/db"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/handlers"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/middleware"
 )
@@ -16,6 +17,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Config Loading Error: %v", err)
 	}
+
+	_, err = db.Open(cfg)
+	if err != nil {
+		log.Fatalf("Database Connection Error: %v", err)
+	}
+	
+	log.SetFlags(log.Ldate | log.Ltime)
+	log.Println("database connected...")
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /", handlers.Health)
@@ -41,7 +51,7 @@ func main() {
 	}
 
 	log.SetFlags(log.Ldate | log.Ltime)
-	log.Printf("Server is Listening at http://localhost:%v", cfg.PORT)
+	log.Printf("server is listening at http://localhost:%v", cfg.PORT)
 
 	if err := server.ListenAndServe(); err != nil {
 		fmt.Printf("%v", err.Error())

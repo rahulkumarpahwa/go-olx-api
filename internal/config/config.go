@@ -75,6 +75,7 @@ func MustLoad() (*Config, error) {
 		WRITETIMEOUT:    writeTimeout,
 		IDLETIMEOUT:     idleTimeout,
 		APP_STATE:       app_state,
+		DATABASE_URL:    database_url,
 		MAXOPENCONN:     max_open_conn,
 		MAXIDLECONN:     max_idle_conn,
 		CONNMAXLIFETIME: conn_max_lifetime,
