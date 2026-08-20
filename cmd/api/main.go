@@ -18,11 +18,13 @@ func main() {
 		log.Fatalf("Config Loading Error: %v", err)
 	}
 
-	_, err = db.Open(cfg)
+	DB, err := db.Open(cfg)
 	if err != nil {
 		log.Fatalf("Database Connection Error: %v", err)
 	}
-	
+
+	defer DB.Close()
+
 	log.SetFlags(log.Ldate | log.Ltime)
 	log.Println("database connected...")
 

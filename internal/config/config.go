@@ -19,6 +19,7 @@ type Config struct {
 	MAXOPENCONN     int
 	MAXIDLECONN     int
 	CONNMAXLIFETIME time.Duration
+	MIGRATIONFILESPATH string
 }
 
 func MustLoad() (*Config, error) {
@@ -69,6 +70,11 @@ func MustLoad() (*Config, error) {
 		return nil, err
 	}
 
+	migration_file_path := os.Getenv("MIGRATIONFILESPATH");
+	if(migration_file_path == ""){
+		return nil, fmt.Errorf("MIGRATIONFILESPATH is required.")
+	}
+
 	cfg := &Config{
 		PORT:            port,
 		READTIMEOUT:     readTimeout,
@@ -79,6 +85,7 @@ func MustLoad() (*Config, error) {
 		MAXOPENCONN:     max_open_conn,
 		MAXIDLECONN:     max_idle_conn,
 		CONNMAXLIFETIME: conn_max_lifetime,
+		MIGRATIONFILESPATH : migration_file_path,
 	}
 
 	return cfg, nil
