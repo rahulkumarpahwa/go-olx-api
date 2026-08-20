@@ -3,17 +3,22 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	PORT         string
-	READTIMEOUT  time.Duration
-	WRITETIMEOUT time.Duration
-	IDLETIMEOUT  time.Duration
-	APP_STATE    string
+	PORT            string
+	READTIMEOUT     time.Duration
+	WRITETIMEOUT    time.Duration
+	IDLETIMEOUT     time.Duration
+	APP_STATE       string
+	DATABASE_URL    string
+	MAXOPENCONN     int
+	MAXIDLECONN     int
+	CONNMAXLIFETIME time.Duration
 }
 
 func MustLoad() (*Config, error) {
@@ -27,6 +32,26 @@ func MustLoad() (*Config, error) {
 	app_state := os.Getenv("APP_STATE")
 	if app_state == "" {
 		panic("APP_STATE is required.")
+	}
+
+	database_url := os.Getenv("DATABASE_URL")
+	if database_url == "" {
+		panic("DATABASE_URL is required.")
+	}
+
+	max_open_conn, err := convertToInt("MAXOPENCONN")
+	if err != nil {
+		return nil, err
+	}
+
+	max_idle_conn, err := convertToInt("MAXIDLECONN")
+	if err != nil {
+		return nil, err
+	}
+
+	conn_max_lifetime, err := durationFromEnv("CONNMAXLIFETIME")
+	if err != nil {
+		return nil, err
 	}
 
 	readTimeout, err := durationFromEnv("READTIMEOUT")
@@ -45,14 +70,32 @@ func MustLoad() (*Config, error) {
 	}
 
 	cfg := &Config{
-		PORT:         port,
-		READTIMEOUT:  readTimeout,
-		WRITETIMEOUT: writeTimeout,
-		IDLETIMEOUT:  idleTimeout,
-		APP_STATE:    app_state,
+		PORT:            port,
+		READTIMEOUT:     readTimeout,
+		WRITETIMEOUT:    writeTimeout,
+		IDLETIMEOUT:     idleTimeout,
+		APP_STATE:       app_state,
+		MAXOPENCONN:     max_open_conn,
+		MAXIDLECONN:     max_idle_conn,
+		CONNMAXLIFETIME: conn_max_lifetime,
 	}
 
 	return cfg, nil
+}
+
+func convertToInt(key string) (int, error) {
+	value := os.Getenv(key)
+
+	if value == "" {
+		return 0, fmt.Errorf(`%s is required.`, key)
+	}
+
+	num, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, err
+	}
+
+	return num, nil
 }
 
 func durationFromEnv(key string) (time.Duration, error) {
@@ -67,4 +110,12 @@ func durationFromEnv(key string) (time.Duration, error) {
 	}
 
 	return duration, nil
+}
+
+func (c *Config) IsProduction() bool {
+	return c.APP_STATE == "Prod"
+}
+
+func (c *Config) IsDev() bool {
+	return c.APP_STATE == "Dev"
 }
