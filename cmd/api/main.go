@@ -52,9 +52,8 @@ func main() {
 	log.Printf("server is listening at http://localhost:%v\n", cfg.PORT)
 
 	// graceful shutdown
-
 	go func() {
-		if err := server.ListenAndServe(); err != nil {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			fmt.Printf("%v\n", err.Error())
 			log.Fatalf("Server Failed: %v\n", err.Error())
 		}
