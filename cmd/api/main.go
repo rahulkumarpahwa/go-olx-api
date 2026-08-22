@@ -1,9 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/rahulkumarpahwa/go-olx-api/internal/config"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/db"
@@ -14,12 +19,12 @@ import (
 func main() {
 	cfg, err := config.MustLoad()
 	if err != nil {
-		log.Fatalf("Config Loading Error: %v", err)
+		log.Fatalf("Config Loading Error: %v\n", err)
 	}
 
 	DB, err := db.Open(cfg)
 	if err != nil {
-		log.Fatalf("Database Connection Error: %v", err)
+		log.Fatalf("Database Connection Error: %v\n", err)
 	}
 
 	defer DB.Close()
@@ -44,10 +49,35 @@ func main() {
 	}
 
 	log.SetFlags(log.Ldate | log.Ltime)
-	log.Printf("server is listening at http://localhost:%v", cfg.PORT)
+	log.Printf("server is listening at http://localhost:%v\n", cfg.PORT)
 
-	if err := server.ListenAndServe(); err != nil {
-		fmt.Printf("%v", err.Error())
-		log.Fatalf("Server Failed: %v", err.Error())
+	// graceful shutdown
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil {
+			fmt.Printf("%v\n", err.Error())
+			log.Fatalf("Server Failed: %v\n", err.Error())
+		}
+	}()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	<-stop
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	log.Println("server shutdown happens in...")
+	for i := 5; i >= 0; i-- {
+		log.Println(i)
+		time.Sleep(time.Second * 1)
 	}
+
+	err = server.Shutdown(ctx)
+	if err != nil {
+		fmt.Printf("%v\n", err.Error())
+		log.Fatalf("Server Shutdown Failed: %v", err.Error())
+	}
+	log.Println("server shutdown gracefully.")
 }
