@@ -30,6 +30,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /healthz", handlers.Health)
+	mux.HandleFunc("GET /listings", handlers.Listings(DB))
 
 	// logging every request
 	loggedMux := middleware.LoggingMiddleware(mux)
