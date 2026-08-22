@@ -52,7 +52,7 @@ func main() {
 		}
 
 	case "down":
-		if err := m.Down(); err != nil {
+		if err := m.Steps(-1); err != nil {
 
 			// check if no migration is need then stop immediately
 			if errors.Is(err, migrate.ErrNoChange) {
