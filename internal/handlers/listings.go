@@ -29,7 +29,7 @@ func Listings(db *sql.DB) http.HandlerFunc {
 
 		for rows.Next() {
 			var l types.Listings
-			err := rows.Scan(&l.Id, &l.Title, &l.Description, &l.Price, &l.Status, &l.City, &l.UserId, &l.CategoryId, &l.CreatedAt)
+			err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.Price, &l.Status, &l.City, &l.UserID, &l.CategoryID, &l.CreatedAt)
 			if err != nil {
 				http.Error(w, "rows.scan: "+err.Error(), http.StatusInternalServerError)
 				return
