@@ -1,0 +1,108 @@
+{
+	"info": {
+		"_postman_id": "a3d5f8c1-6b2e-4d7a-9c4b-1e8f5a2d7b93",
+		"name": "olx",
+		"description": "Postman collection for the go-olx-api service (Go + net/http). Base URL defaults to http://localhost:8080 as configured via the PORT env variable.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health",
+			"_postman_id": "c1e4a7b2-9d3f-4e6c-8a5d-2b7e9f1c4a60",
+			"description": "Endpoints for checking service health.",
+			"item": [
+				{
+					"name": "Health Check",
+					"_postman_id": "d2f5b8c3-ae41-4f7d-9b6c-3c8fa2d5e171",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/healthz",
+							"host": ["{{baseUrl}}"],
+							"path": ["healthz"]
+						},
+						"description": "Returns a simple JSON payload confirming the server is up."
+					},
+					"response": [
+						{
+							"name": "200 - Server healthy",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/healthz",
+									"host": ["{{baseUrl}}"],
+									"path": ["healthz"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Server is working fine\",\n    \"status\": \"200\",\n    \"time\": \"2026-08-24 10:45:12.123456789 +0530 IST\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Listings",
+			"_postman_id": "e3a6c9d4-bf52-4a8e-ac7d-4d9ab3e6f282",
+			"description": "Endpoints for browsing listings.",
+			"item": [
+				{
+					"name": "Get Listings",
+					"_postman_id": "f4b7dae5-c063-4b9f-bd8e-5eabc4f7a393",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/listings",
+							"host": ["{{baseUrl}}"],
+							"path": ["listings"]
+						},
+						"description": "Fetches all listings from the database. Returns 204 when there are no rows, or 500 on a database error."
+					},
+					"response": [
+						{
+							"name": "200 - Listings found",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/listings",
+									"host": ["{{baseUrl}}"],
+									"path": ["listings"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"listings\": [\n        {\n            \"id\": \"3f1c9a2b-8d4e-4f6a-b1c2-5d7e9a0f3b84\",\n            \"title\": \"iPhone 13 128GB - Midnight\",\n            \"description\": \"Excellent condition, box and charger included.\",\n            \"price\": 42000,\n            \"city\": \"Bengaluru\",\n            \"status\": \"active\",\n            \"user_id\": \"1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\n            \"category_id\": \"9c8b7a65-4321-4fed-cba9-887766554433\",\n            \"created_at\": \"2026-08-20T14:30:00Z\",\n            \"updated_at\": \"0001-01-01T00:00:00Z\"\n        }\n    ]\n}"
+						}
+					]
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080"
+		}
+	]
+}
