@@ -36,6 +36,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", handlers.Health)
 	mux.HandleFunc("GET /listings", handlers.GetListings)
+	mux.HandleFunc("POST /listings", handlers.CreateListing)
 	mux.HandleFunc("DELETE /listings/{id}", handlers.DeleteListing)
 
 	// logging every request

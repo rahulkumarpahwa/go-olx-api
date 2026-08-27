@@ -4,22 +4,38 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/types"
 )
 
+type RequestBody struct {
+	ID          uuid.UUID           `json:"-"`
+	Title       string              `json:"title"`
+	Description *string             `json:"description"`
+	Price       int64               `json:"price"`
+	City        string              `json:"city"`
+	Status      types.ListingStatus `json:"-"`
+	UserID      uuid.UUID           `json:"user_id"`
+	CategoryID  uuid.UUID           `json:"category_id"`
+	CreatedAt   time.Time           `json:"-"`
+	UpdatedAt   *time.Time          `json:"-"`
+}
+
 func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 
-	const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at FROM listings"
+	const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at, updated_at FROM listings"
 
 	rows, err := h.DB.QueryContext(r.Context(), query)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "db.rows: No Rows", http.StatusNoContent)
+			http.Error(w, "h.DB.QueryContext: No Rows", http.StatusNoContent)
 			return
 		}
-		http.Error(w, "db.rows: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "h.DB.QueryContext: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -29,7 +45,7 @@ func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var l types.Listings
-		err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.Price, &l.Status, &l.City, &l.UserID, &l.CategoryID, &l.CreatedAt)
+		err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.Price, &l.Status, &l.City, &l.UserID, &l.CategoryID, &l.CreatedAt, &l.UpdatedAt)
 		if err != nil {
 			http.Error(w, "rows.scan: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -63,10 +79,53 @@ func (h *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err = fmt.Errorf("h.DB.ExecContext: %v", err.Error())
 		fmt.Print(err)
-		return
 	}
+	// when still we get the error in delete still we will return the true to improve the security of the app.
 
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusNoContent)
 	json.NewEncoder(w).Encode(map[string]any{"status": "Ok"})
+}
+
+func (h *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
+
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1MB max
+
+	var body RequestBody
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		return
+	}
+	if err := json.Unmarshal(data, &body); err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+
+	// basic validation
+	if body.Title == "" || body.City == "" || body.Price <= 0 || body.UserID == uuid.Nil || body.CategoryID == uuid.Nil {
+		http.Error(w, "Missing or invalid fields", http.StatusBadRequest)
+		return
+	}
+
+	const query = "INSERT INTO listings(title, description, price, city, user_id, category_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, status, created_at , updated_at"
+
+	var id uuid.UUID
+	var status types.ListingStatus
+	var created_at time.Time
+	var updated_at time.Time
+	err = h.DB.QueryRowContext(r.Context(), query, &body.Title, &body.Description, &body.Price, &body.City, &body.UserID, &body.CategoryID, &body.CreatedAt).Scan(&id, &status, &created_at, &updated_at)
+	if err != nil {
+		http.Error(w, "h.DB.QueryRowContext: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	body.ID = id
+	body.Status = status
+	body.CreatedAt = created_at
+	body.UpdatedAt = &updated_at
+
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]any{"status": "Ok", "listing": body})
 }
