@@ -32,10 +32,11 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime)
 	log.Println("database connected...")
 
+	handlers := handlers.NewHanlders(DB)
 	mux := http.NewServeMux()
-
 	mux.HandleFunc("GET /healthz", handlers.Health)
-	mux.HandleFunc("GET /listings", handlers.Listings(DB))
+	mux.HandleFunc("GET /listings", handlers.GetListings)
+	mux.HandleFunc("DELETE /listings/{id}", handlers.DeleteListing)
 
 	// logging every request
 	loggedMux := middleware.LoggingMiddleware(mux)
