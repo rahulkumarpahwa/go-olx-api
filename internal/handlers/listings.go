@@ -37,6 +37,12 @@ func Listings(db *sql.DB) http.HandlerFunc {
 			listings = append(listings, l)
 		}
 
+		err = rows.Err()
+		if err != nil {
+			http.Error(w, "rows.Err(): "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string][]types.Listings{"listings": listings})
