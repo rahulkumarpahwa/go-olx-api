@@ -3,8 +3,8 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -79,8 +79,9 @@ func (h *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
 
 	_, err := h.DB.ExecContext(r.Context(), query, id)
 	if err != nil {
-		err = fmt.Errorf("h.DB.ExecContext: %v", err.Error())
-		fmt.Print(err)
+		slog.Error("delete failed", "listing_id", id, "err", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
 	}
 	// when still we get the error in delete still we will return the true to improve the security of the app.
 

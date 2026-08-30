@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -28,6 +29,13 @@ func main() {
 	}
 
 	defer DB.Close()
+
+	slogHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: true,
+		Level:     nil,
+	})
+	logger := slog.New(slogHandler)
+	slog.SetDefault(logger)
 
 	log.SetFlags(log.Ldate | log.Ltime)
 	log.Println("database connected...")
