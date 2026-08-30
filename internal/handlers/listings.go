@@ -27,7 +27,9 @@ type RequestBody struct {
 
 func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 
-	const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at, updated_at FROM listings"
+	// const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at, updated_at FROM listings"
+
+	const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at,0 updated_at, pg_sleep(20) FROM listings"
 
 	rows, err := h.DB.QueryContext(r.Context(), query)
 	if err != nil {
