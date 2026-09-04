@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"io"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -79,7 +78,7 @@ func (h *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
 
 	_, err := h.DB.ExecContext(r.Context(), query, id)
 	if err != nil {
-		slog.Error("delete failed", "listing_id", id, "err", err)
+		h.Logger.Error("delete failed", "listing_id", id, "err", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}

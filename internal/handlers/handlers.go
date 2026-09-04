@@ -1,13 +1,18 @@
 package handlers
 
-import "database/sql"
+import (
+	"database/sql"
+	"log/slog"
+)
 
 type Handlers struct {
-	DB *sql.DB
+	DB     *sql.DB
+	Logger *slog.Logger
 }
 
-func NewHanlders(db *sql.DB) *Handlers {
+func NewHanlders(db *sql.DB, logger *slog.Logger) *Handlers {
 	return &Handlers{
-		DB: db,
+		DB:     db,
+		Logger: logger,
 	}
 }

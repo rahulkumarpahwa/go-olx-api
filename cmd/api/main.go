@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,6 +14,7 @@ import (
 	"github.com/rahulkumarpahwa/go-olx-api/internal/db"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/handlers"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/middleware"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/slogger"
 )
 
 func main() {
@@ -30,17 +30,12 @@ func main() {
 
 	defer DB.Close()
 
-	slogHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		AddSource: true,
-		Level:     nil,
-	})
-	logger := slog.New(slogHandler)
-	slog.SetDefault(logger)
+	Logger := slogger.NewSlogger(os.Stdout)
 
 	log.SetFlags(log.Ldate | log.Ltime)
 	log.Println("database connected...")
 
-	handlers := handlers.NewHanlders(DB)
+	handlers := handlers.NewHanlders(DB, Logger)
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", handlers.Health)
 	mux.HandleFunc("GET /listings", handlers.GetListings)
