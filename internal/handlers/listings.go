@@ -32,6 +32,8 @@ func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := h.DB.QueryContext(r.Context(), query)
 	if err != nil {
+		h.Logger.Error("listings query error", "err", err)
+
 		if err == sql.ErrNoRows {
 			http.Error(w, "h.DB.QueryContext: No Rows", http.StatusNoContent)
 			return
@@ -48,9 +50,11 @@ func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 		var l types.Listings
 		err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.Price, &l.Status, &l.City, &l.UserID, &l.CategoryID, &l.CreatedAt, &l.UpdatedAt)
 		if err != nil {
+			h.Logger.Error("rows scan error", "err", err)
 			http.Error(w, "rows.scan: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
+		h.Logger.Info("listings fetched", "total", len(listings))
 		listings = append(listings, l)
 	}
 
