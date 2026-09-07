@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/middleware"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/types"
 )
 
@@ -27,7 +28,7 @@ type RequestBody struct {
 func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
-	requestId := ctx.Value("requestCtxId").(string)
+	requestId := middleware.RequestIDFromContext(ctx)
 
 	// const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at, updated_at FROM listings"
 
@@ -76,7 +77,7 @@ func (h *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
 
 	id := r.PathValue("id")
 	ctx := r.Context()
-	requestId := ctx.Value("requestCtxId").(string)
+	requestId := middleware.RequestIDFromContext(ctx)
 
 	if id == "" {
 		http.Error(w, "Missing Delete Listing ID", http.StatusBadRequest)
