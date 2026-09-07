@@ -26,13 +26,16 @@ type RequestBody struct {
 
 func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+	requestId := ctx.Value("requestCtxId").(string)
+
 	// const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at, updated_at FROM listings"
 
 	const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at,0 updated_at, pg_sleep(20) FROM listings"
 
 	rows, err := h.DB.QueryContext(r.Context(), query)
 	if err != nil {
-		h.Logger.Error("listings query error", "err", err)
+		h.Logger.Error("listings query error", "request_id", requestId, "err", err)
 
 		if err == sql.ErrNoRows {
 			http.Error(w, "h.DB.QueryContext: No Rows", http.StatusNoContent)
@@ -50,7 +53,7 @@ func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 		var l types.Listings
 		err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.Price, &l.Status, &l.City, &l.UserID, &l.CategoryID, &l.CreatedAt, &l.UpdatedAt)
 		if err != nil {
-			h.Logger.Error("rows scan error", "err", err)
+			h.Logger.Error("rows scan error", "request_id", requestId, "err", err)
 			http.Error(w, "rows.scan: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -72,6 +75,8 @@ func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
 
 	id := r.PathValue("id")
+	ctx := r.Context()
+	requestId := ctx.Value("requestCtxId").(string)
 
 	if id == "" {
 		http.Error(w, "Missing Delete Listing ID", http.StatusBadRequest)
@@ -82,7 +87,7 @@ func (h *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
 
 	_, err := h.DB.ExecContext(r.Context(), query, id)
 	if err != nil {
-		h.Logger.Error("delete failed", "listing_id", id, "err", err)
+		h.Logger.Error("delete failed", "listing_id", id, "request_id", requestId, "err", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
