@@ -10,33 +10,34 @@ import (
 )
 
 type Config struct {
-	PORT            string
-	READTIMEOUT     time.Duration
-	WRITETIMEOUT    time.Duration
-	IDLETIMEOUT     time.Duration
-	APP_STATE       string
-	DATABASE_URL    string
-	MAXOPENCONN     int
-	MAXIDLECONN     int
-	CONNMAXLIFETIME time.Duration
+	PORT               string
+	READTIMEOUT        time.Duration
+	WRITETIMEOUT       time.Duration
+	IDLETIMEOUT        time.Duration
+	APP_STATE          string
+	DATABASE_URL       string
+	MAXOPENCONN        int
+	MAXIDLECONN        int
+	CONNMAXLIFETIME    time.Duration
 	MIGRATIONFILESPATH string
+	TIMEZONE           string
 }
 
 func MustLoad() (*Config, error) {
 	godotenv.Load() // we will not check for the env but for the individual variable to exist and if not we will panic.
 
-	port := os.Getenv("PORT")
-	if port == "" {
+	port, ok := os.LookupEnv("PORT")
+	if !ok {
 		panic("PORT is required.")
 	}
 
-	app_state := os.Getenv("APP_STATE")
-	if app_state == "" {
+	app_state, ok := os.LookupEnv("APP_STATE")
+	if !ok {
 		panic("APP_STATE is required.")
 	}
 
-	database_url := os.Getenv("DATABASE_URL")
-	if database_url == "" {
+	database_url, ok := os.LookupEnv("DATABASE_URL")
+	if !ok {
 		panic("DATABASE_URL is required.")
 	}
 
@@ -70,22 +71,23 @@ func MustLoad() (*Config, error) {
 		return nil, err
 	}
 
-	migration_file_path := os.Getenv("MIGRATIONFILESPATH");
-	if(migration_file_path == ""){
+	migration_file_path, ok := os.LookupEnv("MIGRATIONFILESPATH")
+	if !ok {
 		return nil, fmt.Errorf("MIGRATIONFILESPATH is required.")
 	}
 
 	cfg := &Config{
-		PORT:            port,
-		READTIMEOUT:     readTimeout,
-		WRITETIMEOUT:    writeTimeout,
-		IDLETIMEOUT:     idleTimeout,
-		APP_STATE:       app_state,
-		DATABASE_URL:    database_url,
-		MAXOPENCONN:     max_open_conn,
-		MAXIDLECONN:     max_idle_conn,
-		CONNMAXLIFETIME: conn_max_lifetime,
-		MIGRATIONFILESPATH : migration_file_path,
+		PORT:               port,
+		READTIMEOUT:        readTimeout,
+		WRITETIMEOUT:       writeTimeout,
+		IDLETIMEOUT:        idleTimeout,
+		APP_STATE:          app_state,
+		DATABASE_URL:       database_url,
+		MAXOPENCONN:        max_open_conn,
+		MAXIDLECONN:        max_idle_conn,
+		CONNMAXLIFETIME:    conn_max_lifetime,
+		MIGRATIONFILESPATH: migration_file_path,
+		TIMEZONE:           os.Getenv("TIMEZONE"),
 	}
 
 	return cfg, nil
