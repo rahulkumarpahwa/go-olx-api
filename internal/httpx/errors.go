@@ -21,7 +21,7 @@ const (
 )
 */
 
-// we arr doin this way so that no one can pass the any random string and any var of type string as in ErrorCode can pass the values other than defined in these.
+// we are doing this way so that no one can pass the any random string and any var of type string as in ErrorCode can pass the values other than defined in these.
 type errorCode struct {
 	value string
 }

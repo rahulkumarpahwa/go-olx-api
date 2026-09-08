@@ -1,13 +1,20 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/rahulkumarpahwa/go-olx-api/internal/httpx"
 )
 
 func (h *Handlers) Health(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf(`{"message" : "Server is working fine", "status": "%v", "time" : "%v"}`, 200, time.Now().Local())))
+	health := struct {
+		Message     string `json:"message"`
+		CurrentTime string `json:"current_time"`
+	}{
+		Message:     "Server is working fine.",
+		CurrentTime: time.Now().In(time.FixedZone("IST", 5*60*60)).Format("2006-01-02 15:04:05"),
+	}
+
+	httpx.Write(w, http.StatusOK, health)
 }

@@ -31,8 +31,6 @@ func main() {
 	defer DB.Close()
 
 	Logger := slogger.NewSlogger(os.Stdout)
-
-	log.SetFlags(log.Ldate | log.Ltime)
 	log.Println("database connected...")
 
 	handlers := handlers.NewHanlders(DB, Logger)
@@ -53,7 +51,6 @@ func main() {
 		IdleTimeout:  cfg.IDLETIMEOUT,
 	}
 
-	log.SetFlags(log.Ldate | log.Ltime)
 	log.Printf("server is listening at http://localhost:%v\n", cfg.PORT)
 
 	// graceful shutdown
