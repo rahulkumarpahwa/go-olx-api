@@ -43,6 +43,7 @@ func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 			httpx.Error(w, http.StatusNoContent, "h.DB.QueryContext: No Rows", httpx.NotFound)
 			return
 		}
+
 		httpx.Error(w, http.StatusInternalServerError, "h.DB.QueryContext: "+err.Error(), httpx.InternalError)
 		return
 	}
