@@ -33,7 +33,7 @@ func main() {
 	Logger := slogger.NewSlogger(os.Stdout)
 	log.Println("database connected...")
 
-	handlers := handlers.NewHanlders(DB, Logger)
+	handlers := handlers.NewHanlders(cfg, DB, Logger)
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", handlers.Health)
 	mux.HandleFunc("GET /listings", handlers.GetListings)

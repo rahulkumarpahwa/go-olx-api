@@ -13,7 +13,7 @@ func (h *Handlers) Health(w http.ResponseWriter, r *http.Request) {
 		CurrentTime string `json:"current_time"`
 	}{
 		Message:     "Server is working fine.",
-		CurrentTime: time.Now().In(time.FixedZone("IST", 5*60*60)).Format("2006-01-02 15:04:05"),
+		CurrentTime: time.Now().In(time.FixedZone(h.Config.TIMEZONE, 5*60*60)).Format("2006-01-02 15:04:05"),
 	}
 
 	httpx.Write(w, http.StatusOK, health)
