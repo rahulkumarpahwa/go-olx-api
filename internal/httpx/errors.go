@@ -5,23 +5,26 @@ import (
 	"net/http"
 )
 
-
 type ErrorCode string
 
 const (
-	NoRows            ErrorCode  = "no_rows"
-	InternalServerError ErrorCode = "internal_server_error"
-	SomethingWentWrong  ErrorCode = "some_went_wrong"
-	BadRequest ErrorCode = "bad_request"
+	InvalidId        ErrorCode = "invalid_id"        // 400
+	NotFound         ErrorCode = "not_found"         // 404
+	InternalError    ErrorCode = "internal_error"    // 500
+	MalformedJSON    ErrorCode = "malformed_json"    // 400
+	ValidationFailed ErrorCode = "validation_failed" // 422
+	UnAuthenticated  ErrorCode = "unauthenticated"   // 401
+	Forbidden        ErrorCode = "forbidden"         // 403
+	Conflict         ErrorCode = "conflict"          // 409
+	RateLimited      ErrorCode = "rate_limited"      // 429
 )
-
 
 type errorEnvelope struct {
 	Error errorPayload `json:"error"`
 }
 
 type errorPayload struct {
-	Message string `json:"message"`
+	Message string    `json:"message"`
 	Code    ErrorCode `json:"code"`
 }
 

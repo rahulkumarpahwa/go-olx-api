@@ -40,10 +40,10 @@ func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 		h.Logger.Error("listings query error", "request_id", requestId, "err", err)
 
 		if err == sql.ErrNoRows {
-			httpx.Error(w, http.StatusNoContent, "h.DB.QueryContext: No Rows", httpx.NoRows)
+			httpx.Error(w, http.StatusNoContent, "h.DB.QueryContext: No Rows", httpx.NotFound)
 			return
 		}
-		httpx.Error(w, http.StatusInternalServerError, "h.DB.QueryContext: "+err.Error(), httpx.SomethingWentWrong)
+		httpx.Error(w, http.StatusInternalServerError, "h.DB.QueryContext: "+err.Error(), httpx.InternalError)
 		return
 	}
 
@@ -56,7 +56,7 @@ func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 		err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.Price, &l.Status, &l.City, &l.UserID, &l.CategoryID, &l.CreatedAt, &l.UpdatedAt)
 		if err != nil {
 			h.Logger.Error("rows scan error", "request_id", requestId, "err", err)
-			httpx.Error(w, http.StatusInternalServerError, "rows.scan: "+err.Error(), httpx.InternalServerError)
+			httpx.Error(w, http.StatusInternalServerError, "rows.scan: "+err.Error(), httpx.InternalError)
 			return
 		}
 		h.Logger.Info("listings fetched", "total", len(listings))
@@ -65,7 +65,7 @@ func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 
 	err = rows.Err()
 	if err != nil {
-		httpx.Error(w, http.StatusInternalServerError, "rows.Err(): "+err.Error(), httpx.InternalServerError)
+		httpx.Error(w, http.StatusInternalServerError, "rows.Err(): "+err.Error(), httpx.InternalError)
 		return
 	}
 
@@ -81,7 +81,7 @@ func (h *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
 	requestId := middleware.RequestIDFromContext(ctx)
 
 	if id == "" {
-		httpx.Error(w, http.StatusBadRequest, "Missing Delete Listing ID", httpx.BadRequest)
+		httpx.Error(w, http.StatusBadRequest, "Missing Delete Listing ID", httpx.InvalidId)
 		return
 	}
 
@@ -107,7 +107,7 @@ func (h *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
 	var body RequestBody
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		httpx.Error(w, http.StatusBadRequest, "Error reading request body", httpx.MalformedJSON)
 		return
 	}
 	if err := json.Unmarshal(data, &body); err != nil {
@@ -117,7 +117,7 @@ func (h *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
 
 	// basic validation
 	if body.Title == "" || body.City == "" || body.Price <= 0 || body.UserID == uuid.Nil || body.CategoryID == uuid.Nil {
-		http.Error(w, "Missing or invalid fields", http.StatusBadRequest)
+		httpx.Error(w, http.StatusBadRequest, "Missing or invalid fields", httpx.ValidationFailed)
 		return
 	}
 
