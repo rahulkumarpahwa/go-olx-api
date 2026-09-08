@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/httpx"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/middleware"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/types"
 )
@@ -39,10 +40,10 @@ func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 		h.Logger.Error("listings query error", "request_id", requestId, "err", err)
 
 		if err == sql.ErrNoRows {
-			http.Error(w, "h.DB.QueryContext: No Rows", http.StatusNoContent)
+			httpx.Error(w, http.StatusNoContent, "h.DB.QueryContext: No Rows", httpx.NoRows)
 			return
 		}
-		http.Error(w, "h.DB.QueryContext: "+err.Error(), http.StatusInternalServerError)
+		httpx.Error(w, http.StatusInternalServerError, "h.DB.QueryContext: "+err.Error(), httpx.SomethingWentWrong)
 		return
 	}
 
@@ -55,7 +56,7 @@ func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 		err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.Price, &l.Status, &l.City, &l.UserID, &l.CategoryID, &l.CreatedAt, &l.UpdatedAt)
 		if err != nil {
 			h.Logger.Error("rows scan error", "request_id", requestId, "err", err)
-			http.Error(w, "rows.scan: "+err.Error(), http.StatusInternalServerError)
+			httpx.Error(w, http.StatusInternalServerError, "rows.scan: "+err.Error(), httpx.InternalServerError)
 			return
 		}
 		h.Logger.Info("listings fetched", "total", len(listings))
@@ -64,7 +65,7 @@ func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 
 	err = rows.Err()
 	if err != nil {
-		http.Error(w, "rows.Err(): "+err.Error(), http.StatusInternalServerError)
+		httpx.Error(w, http.StatusInternalServerError, "rows.Err(): "+err.Error(), httpx.InternalServerError)
 		return
 	}
 
@@ -80,7 +81,7 @@ func (h *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
 	requestId := middleware.RequestIDFromContext(ctx)
 
 	if id == "" {
-		http.Error(w, "Missing Delete Listing ID", http.StatusBadRequest)
+		httpx.Error(w, http.StatusBadRequest, "Missing Delete Listing ID", httpx.BadRequest)
 		return
 	}
 
