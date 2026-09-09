@@ -12,18 +12,6 @@ import (
 	"github.com/rahulkumarpahwa/go-olx-api/internal/types"
 )
 
-type RequestBody struct {
-	ID          uuid.UUID           `json:"id"`
-	Title       string              `json:"title"`
-	Description *string             `json:"description,omitempty"`
-	Price       int64               `json:"price"`
-	City        string              `json:"city"`
-	Status      types.ListingStatus `json:"status"`
-	UserID      uuid.UUID           `json:"user_id"`
-	CategoryID  uuid.UUID           `json:"category_id"`
-	CreatedAt   time.Time           `json:"created_at"`
-	UpdatedAt   *time.Time          `json:"updated_at,omitempty"`
-}
 
 func (lh *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 
@@ -105,7 +93,7 @@ func (lh *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1MB max
 	defer r.Body.Close()
 
-	var body RequestBody
+	var body CreateListingRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		lh.Logger.Error("failed to decode", "request_id", requestId, "err", err)
 		httpx.Error(w, http.StatusBadRequest, "inavlid body", httpx.MalformedJSON)
