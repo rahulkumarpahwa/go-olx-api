@@ -36,14 +36,14 @@ func (lh *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := lh.DB.QueryContext(r.Context(), query)
 	if err != nil {
-		lh.Logger.Error("listings query error", "request_id", requestId, "err", err)
-
 		if err == sql.ErrNoRows {
-			httpx.Error(w, http.StatusNoContent, "h.DB.QueryContext: No Rows", httpx.NotFound)
+			lh.Logger.Error("failed to find rows", "request_id", requestId, "err", err)
+			httpx.Error(w, http.StatusNoContent, "something went wrong", httpx.NotFound)
 			return
 		}
 
-		httpx.Error(w, http.StatusInternalServerError, "h.DB.QueryContext: "+err.Error(), httpx.InternalError)
+		lh.Logger.Error("listings query error", "request_id", requestId, "err", err)
+		httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.InternalError)
 		return
 	}
 
@@ -56,7 +56,7 @@ func (lh *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 		err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.Price, &l.Status, &l.City, &l.UserID, &l.CategoryID, &l.CreatedAt, &l.UpdatedAt)
 		if err != nil {
 			lh.Logger.Error("rows scan error", "request_id", requestId, "err", err)
-			httpx.Error(w, http.StatusInternalServerError, "rows.scan: "+err.Error(), httpx.InternalError)
+			httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.InternalError)
 			return
 		}
 		lh.Logger.Info("listings fetched", "total", len(listings))
@@ -65,13 +65,12 @@ func (lh *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 
 	err = rows.Err()
 	if err != nil {
-		httpx.Error(w, http.StatusInternalServerError, "rows.Err(): "+err.Error(), httpx.InternalError)
+		lh.Logger.Error("scanned rows error", "request_id", requestId, "err", err)
+		httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.InternalError)
 		return
 	}
 
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string][]types.Listings{"listings": listings})
+	httpx.Write(w, http.StatusOK, listings)
 }
 
 func (lh *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +80,8 @@ func (lh *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
 	requestId := middleware.RequestIDFromContext(ctx)
 
 	if id == "" {
-		httpx.Error(w, http.StatusBadRequest, "Missing Delete Listing ID", httpx.InvalidId)
+		lh.Logger.Error("missing delete listing id", "listing_id", id, "request_id", requestId)
+		httpx.Error(w, http.StatusBadRequest, "missing delete listing id", httpx.InvalidId)
 		return
 	}
 
@@ -89,15 +89,13 @@ func (lh *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
 
 	_, err := lh.DB.ExecContext(r.Context(), query, id)
 	if err != nil {
-		lh.Logger.Error("delete failed", "listing_id", id, "request_id", requestId, "err", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
+		lh.Logger.Error("listing delete failed", "listing_id", id, "request_id", requestId, "err", err)
+		httpx.Error(w, http.StatusInternalServerError, "something went wrong	", httpx.InternalError)
 		return
 	}
 	// when still we get the error in delete still we will return the true to improve the security of the app.
 
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusNoContent)
-	json.NewEncoder(w).Encode(map[string]any{"status": "Ok"})
+	httpx.Write(w, http.StatusNoContent, "listing deleted successfully")
 }
 
 func (lh *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
@@ -142,7 +140,7 @@ func (lh *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
 	body.CreatedAt = created_at
 	body.UpdatedAt = &updated_at
 
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	httpx.Write(w, http.StatusAccepted, body)
+	lh.Logger.Info("listing created successfully", "request_id", requestId, "listing_id", id)
+
+	httpx.Write(w, http.StatusCreated, body)
 }
