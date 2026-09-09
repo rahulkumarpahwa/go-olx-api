@@ -3,7 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"io"
 	"net/http"
 	"time"
 
@@ -14,30 +13,30 @@ import (
 )
 
 type RequestBody struct {
-	ID          uuid.UUID           `json:"-"`
+	ID          uuid.UUID           `json:"id"`
 	Title       string              `json:"title"`
-	Description *string             `json:"description"`
+	Description *string             `json:"description,omitempty"`
 	Price       int64               `json:"price"`
 	City        string              `json:"city"`
-	Status      types.ListingStatus `json:"-"`
+	Status      types.ListingStatus `json:"status"`
 	UserID      uuid.UUID           `json:"user_id"`
 	CategoryID  uuid.UUID           `json:"category_id"`
-	CreatedAt   time.Time           `json:"-"`
-	UpdatedAt   *time.Time          `json:"-"`
+	CreatedAt   time.Time           `json:"created_at"`
+	UpdatedAt   *time.Time          `json:"updated_at,omitempty"`
 }
 
-func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
+func (lh *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	requestId := middleware.RequestIDFromContext(ctx)
 
-	// const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at, updated_at FROM listings"
+	const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at, updated_at FROM listings"
 
-	const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at,0 updated_at, pg_sleep(20) FROM listings"
+	// const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at,0 updated_at, pg_sleep(20) FROM listings"
 
-	rows, err := h.DB.QueryContext(r.Context(), query)
+	rows, err := lh.DB.QueryContext(r.Context(), query)
 	if err != nil {
-		h.Logger.Error("listings query error", "request_id", requestId, "err", err)
+		lh.Logger.Error("listings query error", "request_id", requestId, "err", err)
 
 		if err == sql.ErrNoRows {
 			httpx.Error(w, http.StatusNoContent, "h.DB.QueryContext: No Rows", httpx.NotFound)
@@ -56,11 +55,11 @@ func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 		var l types.Listings
 		err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.Price, &l.Status, &l.City, &l.UserID, &l.CategoryID, &l.CreatedAt, &l.UpdatedAt)
 		if err != nil {
-			h.Logger.Error("rows scan error", "request_id", requestId, "err", err)
+			lh.Logger.Error("rows scan error", "request_id", requestId, "err", err)
 			httpx.Error(w, http.StatusInternalServerError, "rows.scan: "+err.Error(), httpx.InternalError)
 			return
 		}
-		h.Logger.Info("listings fetched", "total", len(listings))
+		lh.Logger.Info("listings fetched", "total", len(listings))
 		listings = append(listings, l)
 	}
 
@@ -75,7 +74,7 @@ func (h *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string][]types.Listings{"listings": listings})
 }
 
-func (h *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
+func (lh *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
 
 	id := r.PathValue("id")
 	ctx := r.Context()
@@ -88,9 +87,9 @@ func (h *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
 
 	const query = "DELETE FROM listings WHERE id=$1"
 
-	_, err := h.DB.ExecContext(r.Context(), query, id)
+	_, err := lh.DB.ExecContext(r.Context(), query, id)
 	if err != nil {
-		h.Logger.Error("delete failed", "listing_id", id, "request_id", requestId, "err", err)
+		lh.Logger.Error("delete failed", "listing_id", id, "request_id", requestId, "err", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
@@ -101,36 +100,40 @@ func (h *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]any{"status": "Ok"})
 }
 
-func (h *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
+func (lh *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	requestId := middleware.RequestIDFromContext(ctx)
 
 	r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1MB max
+	defer r.Body.Close()
 
 	var body RequestBody
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		httpx.Error(w, http.StatusBadRequest, "Error reading request body", httpx.MalformedJSON)
-		return
-	}
-	if err := json.Unmarshal(data, &body); err != nil {
-		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
-		return
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		lh.Logger.Error("failed to decode", "request_id", requestId, "err", err)
+		httpx.Error(w, http.StatusBadRequest, "inavlid body", httpx.MalformedJSON)
+		return // must
 	}
 
 	// basic validation
 	if body.Title == "" || body.City == "" || body.Price <= 0 || body.UserID == uuid.Nil || body.CategoryID == uuid.Nil {
-		httpx.Error(w, http.StatusBadRequest, "Missing or invalid fields", httpx.ValidationFailed)
+		lh.Logger.Error("missing or invalid fields", "request_id", requestId)
+		httpx.Error(w, http.StatusBadRequest, "missing or invalid fields", httpx.ValidationFailed)
 		return
 	}
 
-	const query = "INSERT INTO listings(title, description, price, city, user_id, category_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, status, created_at , updated_at"
+	const query = "INSERT INTO listings(title, description, price, city, user_id, category_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, status, created_at, updated_at"
 
-	var id uuid.UUID
-	var status types.ListingStatus
-	var created_at time.Time
-	var updated_at time.Time
-	err = h.DB.QueryRowContext(r.Context(), query, &body.Title, &body.Description, &body.Price, &body.City, &body.UserID, &body.CategoryID, &body.CreatedAt).Scan(&id, &status, &created_at, &updated_at)
+	var (
+		id         uuid.UUID
+		status     types.ListingStatus
+		created_at time.Time
+		updated_at time.Time
+	)
+
+	err := lh.DB.QueryRowContext(r.Context(), query, &body.Title, &body.Description, &body.Price, &body.City, &body.UserID, &body.CategoryID).Scan(&id, &status, &created_at, &updated_at)
 	if err != nil {
-		http.Error(w, "h.DB.QueryRowContext: "+err.Error(), http.StatusInternalServerError)
+		lh.Logger.Error("failed to scan row", "request_id", requestId, "err", err)
+		httpx.Error(w, http.StatusBadRequest, "failed to scan row", httpx.BadRequest)
 		return
 	}
 
@@ -141,5 +144,5 @@ func (h *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]any{"status": "Ok", "listing": body})
+	httpx.Write(w, http.StatusAccepted, body)
 }

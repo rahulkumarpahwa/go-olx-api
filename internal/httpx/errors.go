@@ -31,6 +31,7 @@ var (
 	NotFound         = errorCode{value: "not_found"}         // 404
 	InternalError    = errorCode{value: "internal_error"}    // 500
 	MalformedJSON    = errorCode{value: "malformed_json"}    // 400
+	BadRequest       = errorCode{value: "bad_request"}       // 400
 	ValidationFailed = errorCode{value: "validation_failed"} // 422
 	UnAuthenticated  = errorCode{value: "unauthenticated"}   // 401
 	Forbidden        = errorCode{value: "forbidden"}         // 403
