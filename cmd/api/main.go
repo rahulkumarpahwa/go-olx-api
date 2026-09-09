@@ -40,8 +40,10 @@ func main() {
 	mux.HandleFunc("POST /listings", handlers.CreateListing)
 	mux.HandleFunc("DELETE /listings/{id}", handlers.DeleteListing)
 
+	//getting requestId from every client request
+	extendedMux := middleware.RequestId(mux)
 	// logging every request
-	loggedMux := middleware.LoggingMiddleware(mux)
+	loggedMux := middleware.LoggingMiddleware(extendedMux)
 
 	server := http.Server{
 		Addr:         ":" + cfg.PORT,
