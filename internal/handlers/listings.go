@@ -103,7 +103,7 @@ func (lh *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
 	// basic validation
 	if err := body.Validate(); err != nil {
 		var verr *ValidationError
-		errors.As(err, &verr)
+		errors.As(err, &verr) // this one method opens the error and parse it into the value passed as reference.
 		lh.Logger.Error("missing or invalid fields", "request_id", requestId, "err", err)
 		httpx.ValidationError(w, http.StatusBadRequest, err.Error(), httpx.ValidationFailed, verr.Field)
 		return

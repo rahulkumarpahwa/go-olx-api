@@ -61,6 +61,7 @@ func Error(w http.ResponseWriter, status int, message string, code errorCode) {
 	})
 }
 
+// we created two almost functionality methods so as to create the different responsibilities.
 func ValidationError(w http.ResponseWriter, status int, message string, code errorCode, field string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

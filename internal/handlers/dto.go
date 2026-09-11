@@ -23,8 +23,8 @@ type CreateListingRequest struct {
 }
 
 type ValidationError struct {
-	Field   string
-	Msg string
+	Field string
+	Msg   string
 }
 
 func (v *ValidationError) Error() string {
@@ -34,6 +34,22 @@ func (v *ValidationError) Error() string {
 func (l *CreateListingRequest) Validate() error {
 	if strings.TrimSpace(l.Title) == "" {
 		return &ValidationError{Field: "title", Msg: "must not be empty"}
+	}
+
+	if l.Price <= 0 {
+		return &ValidationError{Field: "price", Msg: "must be greater than 0"}
+	}
+
+	if strings.TrimSpace(l.City) == "" {
+		return &ValidationError{Field: "city", Msg: "must not be empty"}
+	}
+
+	if l.UserID == uuid.Nil {
+		return &ValidationError{Field: "user_id", Msg: "must not be empty"}
+	}
+
+	if l.CategoryID == uuid.Nil {
+		return &ValidationError{Field: "catergory_id", Msg: "must not be empty"}
 	}
 
 	return nil
