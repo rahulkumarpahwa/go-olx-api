@@ -12,7 +12,6 @@ import (
 	"github.com/rahulkumarpahwa/go-olx-api/internal/types"
 )
 
-
 func (lh *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
@@ -101,8 +100,8 @@ func (lh *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// basic validation
-	if body.Title == "" || body.City == "" || body.Price <= 0 || body.UserID == uuid.Nil || body.CategoryID == uuid.Nil {
-		lh.Logger.Error("missing or invalid fields", "request_id", requestId)
+	if err := body.Validate(); err != nil {
+		lh.Logger.Error("missing or invalid fields", "request_id", requestId, "err", err)
 		httpx.Error(w, http.StatusBadRequest, "missing or invalid fields", httpx.ValidationFailed)
 		return
 	}

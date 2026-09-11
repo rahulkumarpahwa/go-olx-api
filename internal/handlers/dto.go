@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,4 +20,21 @@ type CreateListingRequest struct {
 	CategoryID  uuid.UUID           `json:"category_id"`
 	CreatedAt   time.Time           `json:"-"`
 	UpdatedAt   *time.Time          `json:"-"`
+}
+
+type ValidationError struct {
+	Field   string
+	Msg string
+}
+
+func (v *ValidationError) Error() string {
+	return fmt.Sprintf(`%s:%s`, v.Field, v.Msg)
+}
+
+func (l *CreateListingRequest) Validate() error {
+	if strings.TrimSpace(l.Title) == "" {
+		return &ValidationError{Field: "title", Msg: "title field is required"}
+	}
+
+	return nil
 }
