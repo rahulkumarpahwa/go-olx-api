@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -101,8 +102,10 @@ func (lh *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
 
 	// basic validation
 	if err := body.Validate(); err != nil {
+		var verr *ValidationError
+		errors.As(err, &verr)
 		lh.Logger.Error("missing or invalid fields", "request_id", requestId, "err", err)
-		httpx.Error(w, http.StatusBadRequest, "missing or invalid fields", httpx.ValidationFailed)
+		httpx.ValidationError(w, http.StatusBadRequest, err.Error(), httpx.ValidationFailed, verr.Field)
 		return
 	}
 

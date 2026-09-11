@@ -28,12 +28,12 @@ type ValidationError struct {
 }
 
 func (v *ValidationError) Error() string {
-	return fmt.Sprintf(`%s:%s`, v.Field, v.Msg)
+	return fmt.Sprintf(`%s: %s`, v.Field, v.Msg)
 }
 
 func (l *CreateListingRequest) Validate() error {
 	if strings.TrimSpace(l.Title) == "" {
-		return &ValidationError{Field: "title", Msg: "title field is required"}
+		return &ValidationError{Field: "title", Msg: "must not be empty"}
 	}
 
 	return nil
