@@ -36,6 +36,10 @@ func (l *CreateListingRequest) Validate() error {
 		return &ValidationError{Field: "title", Msg: "must not be empty"}
 	}
 
+	if len(l.Title) > 200 {
+		return &ValidationError{Field: "title", Msg: "must be at most 200 characters"}
+	}
+
 	if l.Price <= 0 {
 		return &ValidationError{Field: "price", Msg: "must be greater than 0"}
 	}
