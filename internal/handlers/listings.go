@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/dto"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/httpx"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/middleware"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/types"
@@ -93,7 +94,7 @@ func (lh *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1MB max
 	defer r.Body.Close()
 
-	var body CreateListingRequest
+	var body dto.CreateListingRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		lh.Logger.Error("failed to decode", "request_id", requestId, "err", err)
 		httpx.Error(w, http.StatusBadRequest, "inavlid body", httpx.MalformedJSON)
@@ -102,7 +103,7 @@ func (lh *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
 
 	// basic validation
 	if err := body.Validate(); err != nil {
-		var verr *ValidationError
+		var verr *dto.ValidationError
 		errors.As(err, &verr) // this one method opens the error and parse it into the value passed as reference.
 		lh.Logger.Error("missing or invalid fields", "request_id", requestId, "err", err)
 		httpx.ValidationError(w, http.StatusBadRequest, err.Error(), httpx.ValidationFailed, verr.Field)
