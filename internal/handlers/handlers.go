@@ -20,3 +20,10 @@ func NewHanlders(cfg *config.Config, db *sql.DB, logger *slog.Logger) *Handlers 
 		Logger: logger,
 	}
 }
+
+
+
+func NewUserHanlders() *Handlers {
+	return &Handlers{
+	}
+}

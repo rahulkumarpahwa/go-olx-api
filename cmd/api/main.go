@@ -14,6 +14,8 @@ import (
 	"github.com/rahulkumarpahwa/go-olx-api/internal/db"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/handlers"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/middleware"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/repositories"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/services"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/slogger"
 )
 
@@ -32,6 +34,11 @@ func main() {
 
 	Logger := slogger.NewSlogger(os.Stdout)
 	log.Println("database connected...")
+
+	userRepo := repositories.NewUserRepository(DB, Logger)
+	_ = services.NewUserService(userRepo)
+
+	// handlers := handlers.NewUserHandlers(userServices)
 
 	handlers := handlers.NewHanlders(cfg, DB, Logger)
 	mux := http.NewServeMux()
