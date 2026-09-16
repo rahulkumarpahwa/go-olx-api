@@ -1,27 +1,41 @@
 package handlers
 
-import "github.com/rahulkumarpahwa/go-olx-api/internal/services"
+import (
+	"log/slog"
+
+	"github.com/rahulkumarpahwa/go-olx-api/internal/services"
+)
 
 type Handlers struct {
 	HealthServices  *services.HealthServices
 	UserServices    *services.UserServices
 	ListingServices *services.ListingServices
+	Logger          *slog.Logger
 }
 
-func NewUserHandlers(userServices *services.UserServices) *Handlers {
+func NewHandler(logger *slog.Logger) *Handlers {
+	return &Handlers{
+		Logger: logger,
+	}
+}
+
+func (h *Handlers) UserHandlers(userServices *services.UserServices) *Handlers {
 	return &Handlers{
 		UserServices: userServices,
+		Logger:       h.Logger,
 	}
 }
 
-func NewListingHanlders(listingServices *services.ListingServices) *Handlers {
+func (h *Handlers) ListingHanlders(listingServices *services.ListingServices) *Handlers {
 	return &Handlers{
 		ListingServices: listingServices,
+		Logger:          h.Logger,
 	}
 }
 
-func NewHealthHandlers(healthServices *services.HealthServices) *Handlers {
+func (h *Handlers) HealthHandlers(healthServices *services.HealthServices) *Handlers {
 	return &Handlers{
 		HealthServices: healthServices,
+		Logger:         h.Logger,
 	}
 }

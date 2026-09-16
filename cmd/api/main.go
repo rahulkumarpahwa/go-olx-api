@@ -42,15 +42,16 @@ func main() {
 	userServices := services.NewUserService(userRepo)
 	listingServices := services.NewListingService(listingRepo)
 
-	healthHandler := handlers.NewHealthHandlers(healthServices)
-	_ = handlers.NewUserHandlers(userServices)
-	listingHanlder := handlers.NewListingHanlders(listingServices)
+	hdlr := handlers.NewHandler(Logger)
+	healthHandler := hdlr.HealthHandlers(healthServices)
+	_ = hdlr.UserHandlers(userServices)
+	listingHanlder := hdlr.ListingHanlders(listingServices)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", healthHandler.Health)
 
 	mux.HandleFunc("GET /listings", listingHanlder.GetAll)
-	mux.HandleFunc("POST /listings", listingHanlder.Create)
+	// mux.HandleFunc("POST /listings", listingHanlder.Create)
 	mux.HandleFunc("DELETE /listings/{id}", listingHanlder.DeleteById)
 
 	//getting requestId from every client request
