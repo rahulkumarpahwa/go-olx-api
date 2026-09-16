@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -14,47 +13,14 @@ import (
 	"github.com/rahulkumarpahwa/go-olx-api/internal/types"
 )
 
-func (lh *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
+func (lh *Handlers) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	requestId := middleware.RequestIDFromContext(ctx)
 
-	const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at, updated_at FROM listings"
+	listings, err := lh.ListingServices.Storage.GetListings(ctx, requestId)
 
-	// const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at,0 updated_at, pg_sleep(20) FROM listings"
-
-	rows, err := lh.DB.QueryContext(r.Context(), query)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			lh.Logger.Error("failed to find rows", "request_id", requestId, "err", err)
-			httpx.Error(w, http.StatusNoContent, "something went wrong", httpx.NotFound)
-			return
-		}
-
-		lh.Logger.Error("listings query error", "request_id", requestId, "err", err)
-		httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.InternalError)
-		return
-	}
-
-	defer rows.Close()
-
-	var listings []types.Listings
-
-	for rows.Next() {
-		var l types.Listings
-		err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.Price, &l.Status, &l.City, &l.UserID, &l.CategoryID, &l.CreatedAt, &l.UpdatedAt)
-		if err != nil {
-			lh.Logger.Error("rows scan error", "request_id", requestId, "err", err)
-			httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.InternalError)
-			return
-		}
-		lh.Logger.Info("listings fetched", "total", len(listings))
-		listings = append(listings, l)
-	}
-
-	err = rows.Err()
-	if err != nil {
-		lh.Logger.Error("scanned rows error", "request_id", requestId, "err", err)
 		httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.InternalError)
 		return
 	}
@@ -62,24 +28,23 @@ func (lh *Handlers) GetListings(w http.ResponseWriter, r *http.Request) {
 	httpx.Write(w, http.StatusOK, listings)
 }
 
-func (lh *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
+func (lh *Handlers) DeleteById(w http.ResponseWriter, r *http.Request) {
 
 	id := r.PathValue("id")
 	ctx := r.Context()
 	requestId := middleware.RequestIDFromContext(ctx)
 
 	if id == "" {
-		lh.Logger.Error("missing delete listing id", "listing_id", id, "request_id", requestId)
+		// lh.Logger.Error("missing delete listing id", "listing_id", id, "request_id", requestId)
 		httpx.Error(w, http.StatusBadRequest, "missing delete listing id", httpx.InvalidId)
 		return
 	}
 
 	const query = "DELETE FROM listings WHERE id=$1"
 
-	_, err := lh.DB.ExecContext(r.Context(), query, id)
+	err := lh.ListingServices.Storage.DeleteListingById(ctx, requestId, id)
 	if err != nil {
-		lh.Logger.Error("listing delete failed", "listing_id", id, "request_id", requestId, "err", err)
-		httpx.Error(w, http.StatusInternalServerError, "something went wrong	", httpx.InternalError)
+		httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.InternalError)
 		return
 	}
 	// when still we get the error in delete still we will return the true to improve the security of the app.
@@ -87,7 +52,7 @@ func (lh *Handlers) DeleteListing(w http.ResponseWriter, r *http.Request) {
 	httpx.Write(w, http.StatusNoContent, "listing deleted successfully")
 }
 
-func (lh *Handlers) CreateListing(w http.ResponseWriter, r *http.Request) {
+func (lh *Handlers) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	requestId := middleware.RequestIDFromContext(ctx)
 

@@ -1,6 +1,8 @@
 package services
 
-import "github.com/rahulkumarpahwa/go-olx-api/internal/repositories"
+import (
+	"github.com/rahulkumarpahwa/go-olx-api/internal/repositories"
+)
 
 type UserServices struct {
 	Storage repositories.UserStorage

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log/slog"
 
+	"github.com/rahulkumarpahwa/go-olx-api/internal/config"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/dto"
 )
 
@@ -13,12 +14,14 @@ type UserStorage interface {
 }
 
 type UserRepositories struct {
+	Config *config.Config
 	DB     *sql.DB
 	Logger *slog.Logger
 }
 
-func NewUserRepository(db *sql.DB, logger *slog.Logger) *UserRepositories {
+func NewUserRepository(cfg *config.Config, db *sql.DB, logger *slog.Logger) *UserRepositories {
 	return &UserRepositories{
+		Config: cfg,
 		DB:     db,
 		Logger: logger,
 	}

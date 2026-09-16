@@ -35,17 +35,23 @@ func main() {
 	Logger := slogger.NewSlogger(os.Stdout)
 	log.Println("database connected...")
 
-	userRepo := repositories.NewUserRepository(DB, Logger)
-	_ = services.NewUserService(userRepo)
+	userRepo := repositories.NewUserRepository(cfg, DB, Logger)
+	listingRepo := repositories.NewListingRepository(cfg, DB, Logger)
 
-	// handlers := handlers.NewUserHandlers(userServices)
+	healthServices := services.NewHealthServices(cfg)
+	userServices := services.NewUserService(userRepo)
+	listingServices := services.NewListingService(listingRepo)
 
-	handlers := handlers.NewHanlders(cfg, DB, Logger)
+	healthHandler := handlers.NewHealthHandlers(healthServices)
+	_ = handlers.NewUserHandlers(userServices)
+	listingHanlder := handlers.NewListingHanlders(listingServices)
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", handlers.Health)
-	mux.HandleFunc("GET /listings", handlers.GetListings)
-	mux.HandleFunc("POST /listings", handlers.CreateListing)
-	mux.HandleFunc("DELETE /listings/{id}", handlers.DeleteListing)
+	mux.HandleFunc("GET /healthz", healthHandler.Health)
+
+	mux.HandleFunc("GET /listings", listingHanlder.GetAll)
+	mux.HandleFunc("POST /listings", listingHanlder.Create)
+	mux.HandleFunc("DELETE /listings/{id}", listingHanlder.DeleteById)
 
 	//getting requestId from every client request
 	extendedMux := middleware.RequestId(mux)

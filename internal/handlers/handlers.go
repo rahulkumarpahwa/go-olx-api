@@ -1,29 +1,27 @@
 package handlers
 
-import (
-	"database/sql"
-	"log/slog"
-
-	"github.com/rahulkumarpahwa/go-olx-api/internal/config"
-)
+import "github.com/rahulkumarpahwa/go-olx-api/internal/services"
 
 type Handlers struct {
-	Config *config.Config
-	DB     *sql.DB
-	Logger *slog.Logger
+	HealthServices  *services.HealthServices
+	UserServices    *services.UserServices
+	ListingServices *services.ListingServices
 }
 
-func NewHanlders(cfg *config.Config, db *sql.DB, logger *slog.Logger) *Handlers {
+func NewUserHandlers(userServices *services.UserServices) *Handlers {
 	return &Handlers{
-		Config: cfg,
-		DB:     db,
-		Logger: logger,
+		UserServices: userServices,
 	}
 }
 
-
-
-func NewUserHanlders() *Handlers {
+func NewListingHanlders(listingServices *services.ListingServices) *Handlers {
 	return &Handlers{
+		ListingServices: listingServices,
+	}
+}
+
+func NewHealthHandlers(healthServices *services.HealthServices) *Handlers {
+	return &Handlers{
+		HealthServices: healthServices,
 	}
 }
