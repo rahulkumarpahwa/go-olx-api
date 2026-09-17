@@ -44,15 +44,16 @@ func main() {
 
 	hdlr := handlers.NewHandler(Logger)
 	healthHandler := hdlr.HealthHandlers(healthServices)
-	_ = hdlr.UserHandlers(userServices)
+	userHandler := hdlr.UserHandlers(userServices)
 	listingHanlder := hdlr.ListingHanlders(listingServices)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", healthHandler.Health)
 
+	mux.HandleFunc("POST /signup", userHandler.Signup)
 	mux.HandleFunc("GET /listings", listingHanlder.GetAll)
-	// mux.HandleFunc("POST /listings", listingHanlder.Create)
-	mux.HandleFunc("DELETE /listings/{id}", listingHanlder.DeleteById)
+	// // mux.HandleFunc("POST /listings", listingHanlder.Create)
+	// mux.HandleFunc("DELETE /listings/{id}", listingHanlder.DeleteById)
 
 	//getting requestId from every client request
 	extendedMux := middleware.RequestId(mux)

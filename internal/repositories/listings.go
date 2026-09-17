@@ -6,11 +6,11 @@ import (
 	"log/slog"
 
 	"github.com/rahulkumarpahwa/go-olx-api/internal/config"
-	"github.com/rahulkumarpahwa/go-olx-api/internal/dto"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/dto/listings"
 )
 
 type ListingStorage interface {
-	GetListings(ctx context.Context, requestId string) ([]dto.ListingResponse, error)
+	GetListings(ctx context.Context, requestId string) ([]listings.ListingResponse, error)
 	DeleteListingById(ctx context.Context, requestId string, id string) error
 }
 
@@ -29,7 +29,7 @@ func NewListingRepository(cfg *config.Config, db *sql.DB, logger *slog.Logger) *
 }
 
 // todo : add pagination and Limit
-func (r *ListingRepositories) GetListings(ctx context.Context, requestId string) ([]dto.ListingResponse, error) {
+func (r *ListingRepositories) GetListings(ctx context.Context, requestId string) ([]listings.ListingResponse, error) {
 	const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at, updated_at FROM listings"
 
 	// const query = "SELECT id, title, description, price, status, city, user_id, category_id, created_at,0 updated_at, pg_sleep(20) FROM listings"
@@ -48,17 +48,17 @@ func (r *ListingRepositories) GetListings(ctx context.Context, requestId string)
 
 	defer rows.Close()
 
-	var listings []dto.ListingResponse
+	var lstngs []listings.ListingResponse
 
 	for rows.Next() {
-		var l dto.ListingResponse
+		var l listings.ListingResponse
 		err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.Price, &l.Status, &l.City, &l.UserID, &l.CategoryID, &l.CreatedAt, &l.UpdatedAt)
 		if err != nil {
 			r.Logger.Error("rows scan error", "request_id", requestId, "err", err)
 			return nil, err
 		}
-		r.Logger.Info("listings fetched", "total", len(listings))
-		listings = append(listings, l)
+		r.Logger.Info("listings fetched", "total", len(lstngs))
+		lstngs = append(lstngs, l)
 	}
 
 	err = rows.Err()
@@ -67,7 +67,7 @@ func (r *ListingRepositories) GetListings(ctx context.Context, requestId string)
 		return nil, err
 	}
 
-	return listings, nil
+	return lstngs, nil
 }
 
 func (r *ListingRepositories) DeleteListingById(ctx context.Context, requestId string, id string) error {

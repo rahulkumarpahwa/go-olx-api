@@ -7,7 +7,7 @@ import (
 	"github.com/rahulkumarpahwa/go-olx-api/internal/middleware"
 )
 
-func (lh *Handlers) GetAll(w http.ResponseWriter, r *http.Request) {
+func (lh *ListingHandlers) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	requestId := middleware.RequestIDFromContext(ctx)
@@ -22,7 +22,7 @@ func (lh *Handlers) GetAll(w http.ResponseWriter, r *http.Request) {
 	httpx.Write(w, http.StatusOK, listings)
 }
 
-func (lh *Handlers) DeleteById(w http.ResponseWriter, r *http.Request) {
+func (lh *ListingHandlers) DeleteById(w http.ResponseWriter, r *http.Request) {
 
 	id := r.PathValue("id")
 	ctx := r.Context()

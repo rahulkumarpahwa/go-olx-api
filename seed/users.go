@@ -1,5 +1,5 @@
 package seed
 
-func seedUsers(){
-	
+func SeedUsers() {
+
 }

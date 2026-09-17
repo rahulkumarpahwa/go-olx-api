@@ -6,7 +6,7 @@ import (
 	"github.com/rahulkumarpahwa/go-olx-api/internal/httpx"
 )
 
-func (h *Handlers) Health(w http.ResponseWriter, r *http.Request) {
+func (h *HealthHandlers) Health(w http.ResponseWriter, r *http.Request) {
 	health := h.HealthServices.Health()
 	httpx.Write(w, http.StatusOK, health)
 }
