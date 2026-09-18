@@ -4,11 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"crypto/rand"
-	"encoding/base64"
-
-	"golang.org/x/crypto/argon2"
-
+	"github.com/rahulkumarpahwa/go-olx-api/internal/auth"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/dto/users"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/repositories"
 )
@@ -39,7 +35,7 @@ func (u *UserServices) Signup(ctx context.Context, body users.CreateUser, reques
 
 	// password hashing
 	password := body.Password
-	hashedPassword, err := hashPassword(password)
+	hashedPassword, err := auth.HashPassword(password)
 	if err != nil {
 		return "", err
 	}
@@ -50,35 +46,4 @@ func (u *UserServices) Signup(ctx context.Context, body users.CreateUser, reques
 		return "", err
 	}
 	return id.String(), nil
-}
-
-func hashPassword(password string) (string, error) {
-	salt := make([]byte, 16)
-	if _, err := rand.Read(salt); err != nil {
-		return "", err
-	}
-
-	// Tune these parameters for your server.
-	time := uint32(1)
-	memory := uint32(64 * 1024) // 64 MiB
-	threads := uint8(4)
-	keyLen := uint32(32)
-
-	hash := argon2.IDKey(
-		[]byte(password),
-		salt,
-		time,
-		memory,
-		threads,
-		keyLen,
-	)
-
-	return fmt.Sprintf(
-		"$argon2id$v=19$m=%d,t=%d,p=%d$%s$%s",
-		memory,
-		time,
-		threads,
-		base64.RawStdEncoding.EncodeToString(salt),
-		base64.RawStdEncoding.EncodeToString(hash),
-	), nil
 }

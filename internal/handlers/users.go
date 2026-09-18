@@ -33,14 +33,16 @@ func (uh *UserHandlers) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := uh.UserServices.Signup(ctx, body, requestId)
+	userId, err := uh.UserServices.Signup(ctx, body, requestId)
 	if err != nil {
-		uh.Logger.Error("signup failed", "request_id", requestId, "err", err)
+		uh.Logger.Error("signup failed", "request_id", requestId, "err", err, "user_id", userId)
 		httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.InternalError)
 		return
 	}
 
-	uh.Logger.Info("user signup successfully", "user_id", data)
+	// setup the token here
+
+	uh.Logger.Info("user signup successfully", "user_id", userId)
 
 	httpx.Write(w, http.StatusAccepted, "user signup successfully")
 }
