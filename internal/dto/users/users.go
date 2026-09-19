@@ -14,7 +14,6 @@ type RequestUser struct {
 	Email string    `json:"email"`
 }
 
-
 type CreateUser struct {
 	ID       uuid.UUID `json:"-"`
 	Name     string    `json:"name"`
@@ -35,6 +34,10 @@ func (v *ValidationError) Error() string {
 }
 
 func (u *CreateUser) Validate() error {
+	if u.Email == "" {
+		return &ValidationError{Field: "email", Msg: "must not be empty"}
+	}
+
 	if !isValidEmail(u.Email) {
 		return &ValidationError{Field: "email", Msg: "must be valid"}
 	}
@@ -90,4 +93,29 @@ func isStrongPassword(password string) bool {
 	hasSpecial := regexp.MustCompile(`[^a-zA-Z0-9]`).MatchString(password)
 
 	return hasUpper && hasLower && hasNumber && hasSpecial
+}
+
+type LoginUser struct {
+	Email    string
+	Password string
+}
+
+func (u *LoginUser) Validate() error {
+	if u.Email == "" {
+		return &ValidationError{Field: "email", Msg: "must not be empty"}
+	}
+
+	if !isValidEmail(u.Email) {
+		return &ValidationError{Field: "email", Msg: "must be valid"}
+	}
+
+	if u.Password == "" {
+		return &ValidationError{Field: "password", Msg: "must not be empty"}
+	}
+
+	if !isStrongPassword(u.Password) {
+		return &ValidationError{Field: "", Msg: "invalid credentials"}
+	}
+
+	return nil
 }

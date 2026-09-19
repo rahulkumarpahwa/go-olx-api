@@ -46,3 +46,41 @@ func (uh *UserHandlers) Signup(w http.ResponseWriter, r *http.Request) {
 
 	httpx.Write(w, http.StatusAccepted, "user signup successfully")
 }
+
+
+func (uh *UserHandlers) Login(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+	requestId := middleware.RequestIDFromContext(ctx)
+
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
+	defer r.Body.Close()
+
+	var body users.LoginUser
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		uh.Logger.Error("failed to decode", "request_id", requestId, "err", err)
+		httpx.Error(w, http.StatusBadRequest, "invalid body", httpx.MalformedJSON)
+		return
+	}
+
+	if err := body.Validate(); err != nil {
+		var verr *users.ValidationError
+		errors.As(err, &verr)
+		uh.Logger.Error("missing or invalid fields", "request_id", requestId, "err", err)
+		httpx.ValidationError(w, http.StatusBadRequest, err.Error(), httpx.ValidationFailed, verr.Field)
+		return
+	}
+
+	user, err := uh.UserServices.Login(ctx, body, requestId)
+	if err != nil {
+		uh.Logger.Error("login failed", "request_id", requestId, "err", err, "user_id", user.ID)
+		httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.InternalError)
+		return
+	}
+
+	// setup the token here
+
+	uh.Logger.Info("user signup successfully", "user_id", user.ID)
+
+	httpx.Write(w, http.StatusAccepted, "user signup successfully")
+}

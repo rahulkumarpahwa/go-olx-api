@@ -51,6 +51,8 @@ func main() {
 	mux.HandleFunc("GET /healthz", healthHandler.Health)
 
 	mux.HandleFunc("POST /signup", userHandler.Signup)
+
+	mux.HandleFunc("POST /signup", userHandler.Signup)
 	mux.HandleFunc("GET /listings", listingHanlder.GetAll)
 	// // mux.HandleFunc("POST /listings", listingHanlder.Create)
 	// mux.HandleFunc("DELETE /listings/{id}", listingHanlder.DeleteById)
