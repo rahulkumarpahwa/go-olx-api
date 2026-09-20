@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/dto/users"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/httpx"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/middleware"
@@ -47,7 +48,6 @@ func (uh *UserHandlers) Signup(w http.ResponseWriter, r *http.Request) {
 	httpx.Write(w, http.StatusAccepted, "user signup successfully")
 }
 
-
 func (uh *UserHandlers) Login(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
@@ -78,9 +78,15 @@ func (uh *UserHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.ID == uuid.Nil {
+		uh.Logger.Error("user does not exists", "request_id", requestId, "err", err, "user_id", user.ID)
+		httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.InternalError)
+		return
+	}
+
 	// setup the token here
 
-	uh.Logger.Info("user signup successfully", "user_id", user.ID)
+	uh.Logger.Info("user login successfully", "user_id", user.ID)
 
-	httpx.Write(w, http.StatusAccepted, "user signup successfully")
+	httpx.Write(w, http.StatusAccepted, "user login successfully")
 }

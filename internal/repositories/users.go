@@ -8,11 +8,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/config"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/dto/users"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/types"
 )
 
 type UserStorage interface {
 	GetUserById(ctx context.Context, requestId string, id string) (users.RequestUser, error)
-	GetUserByEmail(ctx context.Context, requestId string, email string) (users.RequestUser, error)
+	GetUserByEmail(ctx context.Context, requestId string, email string) (types.User, error)
 	CreateUser(ctx context.Context, requestId string, body users.CreateUser) (uuid.UUID, error)
 }
 
@@ -52,23 +53,23 @@ func (r *UserRepositories) GetUserById(ctx context.Context, requestId string, id
 	return req, nil
 }
 
-func (r *UserRepositories) GetUserByEmail(ctx context.Context, requestId string, email string) (users.RequestUser, error) {
-	const query = "SELECT id, email, name FROM user WHERE email=$1"
+func (r *UserRepositories) GetUserByEmail(ctx context.Context, requestId string, email string) (types.User, error) {
+	const query = "SELECT id, email, name, password FROM user WHERE email=$1"
 	row := r.DB.QueryRowContext(ctx, query, email)
 
-	var req users.RequestUser
+	var req types.User
 
-	err := row.Scan(&req.ID, &req.Email, &req.Name)
+	err := row.Scan(&req.ID, &req.Email, &req.Name, &req.Password)
 
 	if err != nil {
 		r.Logger.Error("scanned user row error", "request_id", requestId, "err", err, "email", email)
-		return users.RequestUser{}, err
+		return types.User{}, err
 	}
 
 	err = row.Err()
 	if err != nil {
 		r.Logger.Error("scanned user row error", "request_id", requestId, "err", err)
-		return users.RequestUser{}, err
+		return types.User{}, err
 	}
 
 	return req, nil

@@ -7,6 +7,7 @@ import (
 	"github.com/rahulkumarpahwa/go-olx-api/internal/auth"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/dto/users"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/repositories"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/types"
 )
 
 // todo : add logger here as well
@@ -46,4 +47,22 @@ func (u *UserServices) Signup(ctx context.Context, body users.CreateUser, reques
 		return "", err
 	}
 	return id.String(), nil
+}
+
+func (u *UserServices) Login(ctx context.Context, body users.LoginUser, requestId string) (types.User, error) {
+
+	// getting user by email
+	storedUser, err := u.Storage.GetUserByEmail(ctx, requestId, body.Email)
+	if err != nil {
+		return types.User{}, err
+	}
+
+	// check password
+	ok := auth.CheckPassword(body.Password, storedUser.Password)
+	if !ok {
+		// create the error log here
+		return types.User{}, fmt.Errorf("invalid credentials")
+	}
+
+	return storedUser, nil
 }
