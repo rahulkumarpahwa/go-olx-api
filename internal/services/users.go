@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/auth"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/dto/users"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/repositories"
@@ -21,32 +22,32 @@ func NewUserService(storage repositories.UserStorage) *UserServices {
 	}
 }
 
-func (u *UserServices) Signup(ctx context.Context, body users.CreateUser, requestId string) (string, error) {
+func (u *UserServices) Signup(ctx context.Context, body users.CreateUser, requestId string) (uuid.UUID, error) {
 
 	// getting user by email
 	data, err := u.Storage.GetUserByEmail(ctx, requestId, body.Email)
 	if err != nil {
-		return "", err
+		return uuid.Nil, err
 	}
 
 	// check if the user exists
 	if data.Email == body.Email {
-		return "", fmt.Errorf("user exists already")
+		return uuid.Nil, fmt.Errorf("user exists already")
 	}
 
 	// password hashing
 	password := body.Password
 	hashedPassword, err := auth.HashPassword(password)
 	if err != nil {
-		return "", err
+		return uuid.Nil, err
 	}
 	body.Password = hashedPassword
 
 	id, err := u.Storage.CreateUser(ctx, requestId, body)
 	if err != nil {
-		return "", err
+		return uuid.Nil, err
 	}
-	return id.String(), nil
+	return id, nil
 }
 
 func (u *UserServices) Login(ctx context.Context, body users.LoginUser, requestId string) (types.User, error) {

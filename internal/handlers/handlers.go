@@ -3,6 +3,7 @@ package handlers
 import (
 	"log/slog"
 
+	"github.com/rahulkumarpahwa/go-olx-api/internal/config"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/services"
 )
 
@@ -13,6 +14,7 @@ type HealthHandlers struct {
 
 type UserHandlers struct {
 	UserServices *services.UserServices
+	Config       *config.Config
 	Logger       *slog.Logger
 }
 
@@ -22,11 +24,13 @@ type ListingHandlers struct {
 }
 
 type Handlers struct {
+	Config *config.Config
 	Logger *slog.Logger
 }
 
-func NewHandler(logger *slog.Logger) *Handlers {
+func NewHandler(cfg *config.Config, logger *slog.Logger) *Handlers {
 	return &Handlers{
+		Config: cfg,
 		Logger: logger,
 	}
 }

@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/dto/users"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/httpx"
+	"github.com/rahulkumarpahwa/go-olx-api/internal/jwt"
 	"github.com/rahulkumarpahwa/go-olx-api/internal/middleware"
 )
 
@@ -41,7 +43,41 @@ func (uh *UserHandlers) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// setup the token here
+	// setting tokens
+	// access token
+	jwtService := jwt.NewJWTService(uh.Config)
+	accessToken, err := jwtService.GenerateJWT(userId, jwt.Access, time.Minute*30) // half hour
+
+	if err != nil {
+		uh.Logger.Error("access_token failed", "request_id", requestId, "err", err, "user_id", userId)
+		httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.InternalError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "access_token",
+		Value:    accessToken,
+		HttpOnly: true,
+		Secure:   true, // HTTPS
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   30 * 60,
+	})
+
+	// refresh token
+	refreshToken, err := jwtService.GenerateJWT(userId, jwt.Refresh, 7*24*time.Hour) // 7 days
+	if err != nil {
+		uh.Logger.Error("refresh_token failed", "request_id", requestId, "err", err, "user_id", userId)
+		httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.InternalError)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		HttpOnly: true,
+		Secure:   true, // HTTPS
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   30 * 60,
+	})
 
 	uh.Logger.Info("user signup successfully", "user_id", userId)
 

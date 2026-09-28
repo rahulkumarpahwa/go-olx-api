@@ -20,7 +20,7 @@ type JWTService struct {
 	secret []byte
 }
 
-func NewJWTService(config config.Config) *JWTService {
+func NewJWTService(config *config.Config) *JWTService {
 	return &JWTService{
 		secret: []byte(config.JWT_SECRET),
 	}

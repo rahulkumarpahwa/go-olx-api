@@ -42,7 +42,7 @@ func main() {
 	userServices := services.NewUserService(userRepo)
 	listingServices := services.NewListingService(listingRepo)
 
-	hdlr := handlers.NewHandler(Logger)
+	hdlr := handlers.NewHandler(cfg, Logger)
 	healthHandler := hdlr.HealthHandlers(healthServices)
 	userHandler := hdlr.UserHandlers(userServices)
 	listingHanlder := hdlr.ListingHanlders(listingServices)
