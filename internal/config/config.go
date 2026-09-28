@@ -16,6 +16,7 @@ type Config struct {
 	IDLETIMEOUT        time.Duration
 	APP_STATE          string
 	DATABASE_URL       string
+	JWT_SECRET         string
 	MAXOPENCONN        int
 	MAXIDLECONN        int
 	CONNMAXLIFETIME    time.Duration
@@ -40,6 +41,16 @@ func MustLoad() (*Config, error) {
 	if !ok {
 		panic("DATABASE_URL is required.")
 	}
+
+	jwt_secret, ok := os.LookupEnv("JWT_SECRET")
+	if !ok {
+		panic("JWT_SECRET is required.")
+	}
+
+	if len(jwt_secret) < 32 {
+		panic("JWT_SECRET length must be 32 characters or more.")
+	}
+
 
 	max_open_conn, err := convertToInt("MAXOPENCONN")
 	if err != nil {
@@ -83,6 +94,7 @@ func MustLoad() (*Config, error) {
 		IDLETIMEOUT:        idleTimeout,
 		APP_STATE:          app_state,
 		DATABASE_URL:       database_url,
+		JWT_SECRET:         jwt_secret,
 		MAXOPENCONN:        max_open_conn,
 		MAXIDLECONN:        max_idle_conn,
 		CONNMAXLIFETIME:    conn_max_lifetime,
