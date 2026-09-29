@@ -59,7 +59,8 @@ func (uh *UserHandlers) Signup(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Secure:   true, // HTTPS
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   30 * 60,
+		Path:     "/api/*",
+		MaxAge:   7 * 24 * 60 * 60,
 	})
 
 	// refresh token
@@ -75,6 +76,7 @@ func (uh *UserHandlers) Signup(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Secure:   true, // HTTPS
 		SameSite: http.SameSiteLaxMode,
+		Path:     "/auth/refresh",
 		MaxAge:   30 * 60,
 	})
 

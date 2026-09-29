@@ -48,12 +48,10 @@ func main() {
 	listingHanlder := hdlr.ListingHanlders(listingServices)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", healthHandler.Health)
+	mux.HandleFunc("GET /api/v1/healthz", healthHandler.Health)
 
-	mux.HandleFunc("POST /signup", userHandler.Signup)
-
-	mux.HandleFunc("POST /signup", userHandler.Signup)
-	mux.HandleFunc("GET /listings", listingHanlder.GetAll)
+	mux.HandleFunc("POST /auth/v1/signup", userHandler.Signup)
+	mux.HandleFunc("GET /api/v1/listings", listingHanlder.GetAll)
 	// // mux.HandleFunc("POST /listings", listingHanlder.Create)
 	// mux.HandleFunc("DELETE /listings/{id}", listingHanlder.DeleteById)
 
