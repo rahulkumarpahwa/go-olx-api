@@ -16,42 +16,75 @@ const (
 	Refresh TokenType = "refresh"
 )
 
-type JWTService struct {
-	secret []byte
+type Claims struct {
+	UserID    uuid.UUID `json:"user_id"`
+	TokenType TokenType `json:"token_type"`
+	jwt.RegisteredClaims
 }
 
-func NewJWTService(config *config.Config) *JWTService {
-	return &JWTService{
-		secret: []byte(config.JWT_SECRET),
-	}
+func getSecretKey(config *config.Config) []byte {
+	return []byte(config.JWT_SECRET)
 }
 
-func (j *JWTService) GenerateJWT(userID uuid.UUID, typ TokenType, expiry time.Duration) (string, error) {
+func GenerateJWT(config *config.Config, userID uuid.UUID, typ TokenType, expiry time.Duration) (string, error) {
 
-	if len(j.secret) == 0 {
+	secret := getSecretKey(config)
+
+	if len(secret) == 0 {
 		return "", fmt.Errorf("invalid jwt secret key")
 	}
 
-	claims := jwt.MapClaims{
-		"sub":  userID, // subject
-		"exp":  time.Now().Add(expiry).Unix(),
-		"type": typ,
-		"iat":  time.Now().Unix(), // issued at
+	claims := Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        uuid.NewString(),
+			Subject:   userID.String(),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiry)),
+		},
+		UserID:    userID,
+		TokenType: typ,
 	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(j.secret)
+	return token.SignedString(secret)
 }
 
-func (j *JWTService) VerifyToken(tokenString string) (*jwt.Token, error) {
+func VerifyToken(
+	config *config.Config,
+	tokenString string,
+) (*Claims, error) {
 
-	if len(j.secret) == 0 {
+	secret := getSecretKey(config)
+
+	if len(secret) == 0 {
 		return nil, fmt.Errorf("invalid jwt secret key")
 	}
 
-	return jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-		if token.Method != jwt.SigningMethodHS256 {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return j.secret, nil
-	})
+	claims := &Claims{}
+
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		claims,
+		func(token *jwt.Token) (any, error) {
+
+			if token.Method != jwt.SigningMethodHS256 {
+				return nil, fmt.Errorf(
+					"unexpected signing method: %v",
+					token.Header["alg"],
+				)
+			}
+
+			return secret, nil
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	return claims, nil
 }

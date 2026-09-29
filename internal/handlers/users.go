@@ -45,8 +45,7 @@ func (uh *UserHandlers) Signup(w http.ResponseWriter, r *http.Request) {
 
 	// setting tokens
 	// access token
-	jwtService := jwt.NewJWTService(uh.Config)
-	accessToken, err := jwtService.GenerateJWT(userId, jwt.Access, time.Minute*30) // half hour
+	accessToken, err := jwt.GenerateJWT(uh.Config, userId, jwt.Access, time.Minute*30) // half hour
 
 	if err != nil {
 		uh.Logger.Error("access_token failed", "request_id", requestId, "err", err, "user_id", userId)
@@ -64,7 +63,7 @@ func (uh *UserHandlers) Signup(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// refresh token
-	refreshToken, err := jwtService.GenerateJWT(userId, jwt.Refresh, 7*24*time.Hour) // 7 days
+	refreshToken, err := jwt.GenerateJWT(uh.Config, userId, jwt.Refresh, 7*24*time.Hour) // 7 days
 	if err != nil {
 		uh.Logger.Error("refresh_token failed", "request_id", requestId, "err", err, "user_id", userId)
 		httpx.Error(w, http.StatusInternalServerError, "something went wrong", httpx.InternalError)
