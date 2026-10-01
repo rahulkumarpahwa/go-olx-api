@@ -46,7 +46,7 @@ func (r *UserRepositories) GetUserById(ctx context.Context, requestId string, id
 
 	err = row.Err()
 	if err != nil {
-		r.Logger.Error("scanned user row error", "request_id", requestId, "err", err)
+		r.Logger.Error("scanned user row error", "user_id", requestId, "err", err)
 		return users.RequestUser{}, err
 	}
 

@@ -47,11 +47,13 @@ func main() {
 	userHandler := hdlr.UserHandlers(userServices)
 	listingHanlder := hdlr.ListingHanlders(listingServices)
 
+	mid := middleware.NewMiddleware(cfg, Logger)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/healthz", healthHandler.Health)
 
 	mux.HandleFunc("POST /auth/v1/signup", userHandler.Signup)
-	mux.HandleFunc("GET /api/v1/listings", listingHanlder.GetAll)
+	mux.Handle("GET /api/v1/listings", mid.AuthMiddleware(http.HandlerFunc(listingHanlder.GetAll)))
 	// // mux.HandleFunc("POST /listings", listingHanlder.Create)
 	// mux.HandleFunc("DELETE /listings/{id}", listingHanlder.DeleteById)
 
